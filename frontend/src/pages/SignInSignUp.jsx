@@ -20,7 +20,8 @@ export default function SignInSignUp() {
     const handleSignIn = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:5000/auth/login", {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const res = await fetch(`${apiUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +51,8 @@ export default function SignInSignUp() {
   const handleSignUp = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:5000/auth/signup", {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const res = await fetch(`${apiUrl}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
