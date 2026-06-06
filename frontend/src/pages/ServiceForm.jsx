@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createService, getServiceById, updateService } from "../api/serviceApi";
+import { useTranslation } from "../i18n";
 
 export default function ServiceForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams(); // For edit mode (if we implement it later)
   const isEditMode = Boolean(id);
 
   const [form, setForm] = useState({
-    title: "",
-    shortDescription: "",
-    longDescription: "",
+    title: { en: "", mr: "" },
+    shortDescription: { en: "", mr: "" },
+    longDescription: { en: "", mr: "" },
     category: "",
-    features: "",
+    featuresEn: "",
+    featuresMr: "",
     
     // Icons
     icon: "storefront",
     
     // Pricing
-    price: "99.00",
-    currency: "USD",
-    billingType: "recurring", // "recurring" or "onetime"
-    billingCycle: "Monthly", // "Monthly", "Quarterly", "Yearly"
-    duration: 30, // for onetime duration
+    price: "999.00",
+    currency: "INR",
+    duration: "monthly",
     
     // Advanced
     offerFreeTrial: true,
@@ -44,10 +45,21 @@ export default function ServiceForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setForm(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: type === "checkbox" ? checked : value
+        }
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
   };
 
   const setFormToggle = (field) => {
@@ -64,19 +76,17 @@ export default function ServiceForm() {
         try {
           const data = await getServiceById(id);
           if (data) {
-            setForm({
-              title: data.title || "",
-              shortDescription: data.shortDescription || "",
-              longDescription: data.longDescription || "",
+              setForm({
+              title: data.title || { en: "", mr: "" },
+              shortDescription: data.shortDescription || { en: "", mr: "" },
+              longDescription: data.longDescription || { en: "", mr: "" },
               category: data.category || "",
-              // Convert array back to comma-separated string for editing
-              features: Array.isArray(data.features) ? data.features.join(", ") : (data.features || ""),
+              featuresEn: Array.isArray(data.features) ? data.features.map(f => f.en).filter(Boolean).join(", ") : "",
+              featuresMr: Array.isArray(data.features) ? data.features.map(f => f.mr).filter(Boolean).join(", ") : "",
               icon: data.icon || "storefront",
-              price: data.price || "99.00",
-              currency: data.currency || "USD",
-              billingType: data.billingType || "recurring",
-              billingCycle: data.billingCycle || "Monthly",
-              duration: data.duration || 30,
+              price: data.price || "999.00",
+              currency: data.currency || "INR",
+              duration: data.duration || "monthly",
               offerFreeTrial: data.offerFreeTrial ?? true,
               trialDays: data.trialDays || 14,
               discount: data.discount || "",
@@ -98,9 +108,13 @@ export default function ServiceForm() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      const enFeatures = form.featuresEn.split(",").map(f => f.trim()).filter(f => f);
+      const mrFeatures = form.featuresMr.split(",").map(f => f.trim()).filter(f => f);
+      const combinedFeatures = enFeatures.map((f, i) => ({ en: f, mr: mrFeatures[i] || "" }));
+
       const submissionData = {
         ...form,
-        features: form.features.split(",").map((f) => f.trim()).filter((f) => f),
+        features: combinedFeatures,
       };
 
       if (isEditMode) {
@@ -164,7 +178,7 @@ export default function ServiceForm() {
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 font-display">
-                {isEditMode ? "Edit Service" : "Configure Service"}
+                {isEditMode ? t("serviceForm.editService") : t("serviceForm.createService")}
               </h1>
               <p className="text-sm text-slate-500 mt-1">Create a new service offering or update an existing one.</p>
             </div>
@@ -182,7 +196,7 @@ export default function ServiceForm() {
                 className="px-4 py-2 text-sm font-medium text-white bg-[#1DB887] border border-transparent rounded-lg shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1DB887] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">save</span>
-                {loading ? "Saving..." : "Save Changes"}
+                {loading ? t("common.loading") : t("common.save")}
               </button>
             </div>
           </div>
@@ -202,49 +216,83 @@ export default function ServiceForm() {
                   </h3>
                 </div>
                 <div className="p-6 space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="service-name">Service Name</label>
-                    <input 
-                      id="service-name"
-                      name="title"
-                      value={form.title}
-                      onChange={handleChange}
-                      required
-                      className="block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
-                      placeholder="e.g. Premium Local SEO Package" 
-                      type="text"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="service-name">Title (EN)</label>
+                      <input 
+                        id="service-name"
+                        name="title.en"
+                        value={form.title.en}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
+                        placeholder="Premium SEO" 
+                        type="text"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="service-name-mr">Title (MR)</label>
+                      <input 
+                        id="service-name-mr"
+                        name="title.mr"
+                        value={form.title.mr}
+                        onChange={handleChange}
+                        className="block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
+                        placeholder="प्रीमियम एसइओ" 
+                        type="text"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="short-desc">Short Description</label>
-                    <input 
-                      id="short-desc"
-                      name="shortDescription"
-                      value={form.shortDescription}
-                      onChange={handleChange}
-                      required
-                      className="block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
-                      placeholder="Brief summary for listings (max 120 chars)" 
-                      type="text"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="short-desc">Short Desc (EN)</label>
+                      <input 
+                        id="short-desc"
+                        name="shortDescription.en"
+                        value={form.shortDescription.en}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
+                        placeholder="Brief summary..." 
+                        type="text"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="short-desc-mr">Short Desc (MR)</label>
+                      <input 
+                        id="short-desc-mr"
+                        name="shortDescription.mr"
+                        value={form.shortDescription.mr}
+                        onChange={handleChange}
+                        className="block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
+                        placeholder="थोडक्यात माहिती..." 
+                        type="text"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="detailed-desc">Detailed Description</label>
-                    <div className="mt-1 border border-slate-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                      <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex items-center gap-2">
-                        <button type="button" className="p-1 text-slate-500 hover:bg-slate-200 rounded"><span className="material-symbols-outlined text-sm">format_bold</span></button>
-                        <button type="button" className="p-1 text-slate-500 hover:bg-slate-200 rounded"><span className="material-symbols-outlined text-sm">format_italic</span></button>
-                        <button type="button" className="p-1 text-slate-500 hover:bg-slate-200 rounded"><span className="material-symbols-outlined text-sm">format_list_bulleted</span></button>
-                        <button type="button" className="p-1 text-slate-500 hover:bg-slate-200 rounded"><span className="material-symbols-outlined text-sm">link</span></button>
-                      </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="detailed-desc">Long Desc (EN)</label>
                       <textarea 
                         id="detailed-desc"
-                        name="longDescription"
-                        value={form.longDescription}
+                        name="longDescription.en"
+                        value={form.longDescription.en}
                         onChange={handleChange}
-                        className="block w-full border-0 py-3 px-3 text-slate-900 placeholder:text-slate-400 focus:ring-0 sm:text-sm resize-y outline-none" 
-                        placeholder="Comprehensive details about the service offering..." 
-                        rows="6"
+                        className="block w-full border border-slate-300 rounded-lg py-3 px-3 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-y outline-none" 
+                        placeholder="Comprehensive details..." 
+                        rows="4"
+                      ></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="detailed-desc-mr">Long Desc (MR)</label>
+                      <textarea 
+                        id="detailed-desc-mr"
+                        name="longDescription.mr"
+                        value={form.longDescription.mr}
+                        onChange={handleChange}
+                        className="block w-full border border-slate-300 rounded-lg py-3 px-3 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-y outline-none" 
+                        placeholder="सविस्तर माहिती..." 
+                        rows="4"
                       ></textarea>
                     </div>
                   </div>
@@ -261,7 +309,7 @@ export default function ServiceForm() {
                 </div>
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="category">Primary Category</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="category">{t("serviceForm.category")}</label>
                     <select 
                       id="category"
                       name="category"
@@ -278,35 +326,26 @@ export default function ServiceForm() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="tags">Tags (Comma separated)</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="tagsEn">Features (EN, comma separated)</label>
                     <input 
-                      id="tags"
-                      name="features"
-                      value={form.features}
+                      id="tagsEn"
+                      name="featuresEn"
+                      value={form.featuresEn}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
+                      className="block w-full px-3 py-2 border rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none mb-4" 
                       placeholder="seo, local, optimization" 
                       type="text"
                     />
-                    {form.features && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {form.features.split(',').map((feat, idx) => feat.trim() && (
-                          <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                            {feat.trim()}
-                            <button 
-                              className="ml-1 text-slate-400 hover:text-slate-600 focus:outline-none" 
-                              type="button"
-                              onClick={() => {
-                                const newFeatures = form.features.split(',').map(f => f.trim()).filter(f => f !== feat.trim()).join(', ');
-                                setForm({...form, features: newFeatures});
-                              }}
-                            >
-                                <span className="material-symbols-outlined text-[12px]">close</span>
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="tagsMr">Features (MR, comma separated)</label>
+                    <input 
+                      id="tagsMr"
+                      name="featuresMr"
+                      value={form.featuresMr}
+                      onChange={handleChange}
+                      className="block w-full px-3 py-2 border rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none" 
+                      placeholder="एसइओ, स्थानिक, ऑप्टिमायझेशन" 
+                      type="text"
+                    />
                   </div>
                 </div>
               </div>
@@ -388,17 +427,17 @@ export default function ServiceForm() {
                 <div className="p-6 space-y-6">
                   <div className="flex gap-4">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="price">Base Price</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="price">{t("serviceForm.price")}</label>
                       <div className="relative rounded-lg shadow-sm">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-slate-500 sm:text-sm">$</span>
+                          <span className="text-slate-500 sm:text-sm">{form.currency === 'INR' ? '₹' : form.currency === 'EUR' ? '€' : form.currency === 'GBP' ? '£' : form.currency === 'AED' ? 'د.إ' : '$'}</span>
                         </div>
                         <input 
                           id="price"
                           name="price"
                           value={form.price}
                           onChange={handleChange}
-                          className="focus:ring-blue-500 border border-slate-300 focus:border-blue-500 block w-full pl-7 pr-3 py-2 outline-none sm:text-sm rounded-lg" 
+                          className="focus:ring-blue-500 border border-slate-300 focus:border-blue-500 block w-full pl-9 pr-3 py-2 outline-none sm:text-sm rounded-lg" 
                           placeholder="0.00" 
                           type="number" 
                         />
@@ -413,74 +452,30 @@ export default function ServiceForm() {
                         onChange={handleChange}
                         className="block w-full border px-3 py-2 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none"
                       >
-                        <option>USD</option>
-                        <option>EUR</option>
-                        <option>GBP</option>
-                        <option>INR</option>
+                        <option value="INR">INR (₹)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="AED">AED (د.إ)</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Billing Type</label>
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <input 
-                          id="billing-recurring" 
-                          name="billingType" 
-                          value="recurring"
-                          checked={form.billingType === "recurring"}
-                          onChange={handleChange}
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-slate-300 cursor-pointer" 
-                          type="radio" 
-                        />
-                        <label className="ml-3 block text-sm font-medium text-slate-700 cursor-pointer" htmlFor="billing-recurring">Recurring Subscription</label>
-                      </div>
-                      
-                      {/* Conditional: Recurring Cycle */}
-                      <div className={`ml-7 pl-3 border-l-2 border-slate-200 transition-opacity ${form.billingType === 'recurring' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-                        <select 
-                          id="billing-cycle" 
-                          name="billingCycle" 
-                          value={form.billingCycle}
-                          onChange={handleChange}
-                          className="block w-full px-3 py-1.5 border rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none"
-                        >
-                          <option>Monthly</option>
-                          <option>Quarterly</option>
-                          <option>Yearly</option>
-                        </select>
-                      </div>
-                      
-                      <div className="flex items-center pt-2">
-                        <input 
-                          id="billing-onetime" 
-                          name="billingType" 
-                          value="onetime"
-                          checked={form.billingType === "onetime"}
-                          onChange={handleChange}
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-slate-300 cursor-pointer" 
-                          type="radio" 
-                        />
-                        <label className="ml-3 block text-sm font-medium text-slate-700 cursor-pointer" htmlFor="billing-onetime">One-time Purchase</label>
-                      </div>
-                      
-                      {/* Conditional: Duration */}
-                      <div className={`ml-7 pl-3 border-l-2 border-slate-200 transition-opacity ${form.billingType === 'onetime' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-                        <div className="flex items-center gap-2">
-                          <input 
-                            id="duration" 
-                            name="duration" 
-                            value={form.duration}
-                            onChange={handleChange}
-                            className="focus:ring-blue-500 focus:border-blue-500 block px-3 w-20 sm:text-sm border border-slate-300 outline-none rounded-md py-1.5" 
-                            placeholder="30" 
-                            type="number" 
-                          />
-                          <span className="text-sm text-slate-500">days</span>
-                        </div>
-                      </div>
-                    </div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="duration">Service Duration</label>
+                    <select 
+                      id="duration" 
+                      name="duration" 
+                      value={form.duration}
+                      onChange={handleChange}
+                      className="block w-full px-3 py-2 border rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none"
+                    >
+                      <option value="hourly">Hourly</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="one-time">One Time</option>
+                    </select>
                   </div>
 
                   <hr className="border-slate-200" />
@@ -606,7 +601,7 @@ export default function ServiceForm() {
               className="px-6 py-2.5 text-sm font-bold text-white bg-[#1DB887] hover:opacity-90 border border-transparent rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1DB887] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[20px]">rocket_launch</span>
-              {loading ? "Publishing..." : "Publish Service"}
+              {loading ? t("common.loading") : t("common.submit")}
             </button>
           </div>
         </form>

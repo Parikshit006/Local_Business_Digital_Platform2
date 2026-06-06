@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "../i18n";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -26,29 +28,29 @@ export default function UserDashboard() {
             LocalBoost
           </h1>
           <p className="text-xs text-slate-500 uppercase tracking-widest mt-1">
-            Business Portal
+            {t("userDashboard.businessPortal")}
           </p>
         </div>
 
         <nav className="flex-1 space-y-1">
           <div className="flex items-center gap-3 bg-white text-[#1DB887] font-bold rounded-lg shadow-sm px-4 py-3">
             <span className="material-symbols-outlined">storefront</span>
-            Services
+            {t("userDashboard.sidebarServices")}
           </div>
 
           <div className="flex items-center gap-3 text-slate-600 hover:bg-slate-100 px-4 py-3 rounded-lg">
             <span className="material-symbols-outlined">business_center</span>
-            My Business
+            {t("userDashboard.sidebarMyBusiness")}
           </div>
 
           <div className="flex items-center gap-3 text-slate-600 hover:bg-slate-100 px-4 py-3 rounded-lg">
             <span className="material-symbols-outlined">analytics</span>
-            Analytics
+            {t("userDashboard.sidebarAnalytics")}
           </div>
 
           <div className="flex items-center gap-3 text-slate-600 hover:bg-slate-100 px-4 py-3 rounded-lg">
             <span className="material-symbols-outlined">settings</span>
-            Settings
+            {t("userDashboard.sidebarSettings")}
           </div>
         </nav>
 
@@ -59,7 +61,7 @@ export default function UserDashboard() {
             className="flex items-center gap-3 text-slate-600 hover:text-red-500 px-4 py-3 rounded-lg w-full"
           >
             <span className="material-symbols-outlined">logout</span>
-            Logout
+            {t("common.logout")}
           </button>
         </div>
       </aside>
@@ -71,7 +73,7 @@ export default function UserDashboard() {
         <header className="sticky top-0 w-full z-30 bg-white/80 backdrop-blur-md px-10 py-6 flex justify-between items-center">
 
           <h2 className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-[#1B2A5E]">
-            Browse Services
+            {t("userDashboard.browseServices")}
           </h2>
 
           <div className="flex items-center gap-6">
@@ -83,7 +85,7 @@ export default function UserDashboard() {
               </span>
               <input
                 className="w-full bg-surface-container-low border-none rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary/40 text-sm"
-                placeholder="Search services..."
+                placeholder={t("userDashboard.searchServices")}
               />
             </div>
 
@@ -105,15 +107,15 @@ export default function UserDashboard() {
           {/* HERO */}
           <section className="mb-12 relative overflow-hidden rounded-[20px] bg-primary-container p-12 text-white">
             <p className="text-sm uppercase tracking-widest mb-3">
-              Dashboard Overview
+              {t("userDashboard.dashboardOverview")}
             </p>
 
             <h3 className="text-5xl font-bold mb-4">
-              Good morning, {user?.name || "User"}
+              {t("userDashboard.goodMorning", { name: user?.name || "User" })}
             </h3>
 
             <p className="text-sm">
-              Explore new growth opportunities for your business today.
+              {t("userDashboard.exploreOpportunities")}
             </p>
           </section>
 
@@ -122,28 +124,28 @@ export default function UserDashboard() {
 
             {[
               {
-                title: "Website Builder",
-                desc: "Launch a professional business website quickly.",
+                title: t("homepage.serviceWebsiteTitle"),
+                desc: t("userDashboard.serviceWebsiteDesc"),
               },
               {
-                title: "Social Media Setup",
-                desc: "Build your brand across platforms.",
+                title: t("homepage.serviceSocialTitle"),
+                desc: t("userDashboard.serviceSocialDesc"),
               },
               {
-                title: "Print & Branding",
-                desc: "Design offline materials for your store.",
+                title: t("homepage.servicePrintTitle"),
+                desc: t("userDashboard.servicePrintDesc"),
               },
               {
-                title: "GST Registration",
-                desc: "Simplify your compliance process.",
+                title: t("homepage.serviceGSTTitle"),
+                desc: t("userDashboard.serviceGSTDesc"),
               },
               {
-                title: "Inventory Suite",
-                desc: "Manage stock and suppliers easily.",
+                title: t("homepage.serviceInventoryTitle"),
+                desc: t("userDashboard.serviceInventoryDesc"),
               },
               {
-                title: "Ad Performance",
-                desc: "Track marketing campaign success.",
+                title: t("homepage.serviceAdTitle"),
+                desc: t("userDashboard.serviceAdDesc"),
               },
             ].map((s, i) => (
               <div
@@ -156,7 +158,7 @@ export default function UserDashboard() {
                 <p className="text-slate-500 text-sm mb-6">{s.desc}</p>
 
                 <button className="text-[#1DB887] font-bold text-sm">
-                  Read more →
+                  {t("userDashboard.readMoreArrow")}
                 </button>
               </div>
             ))}
@@ -167,7 +169,7 @@ export default function UserDashboard() {
 
         {/* FOOTER */}
         <footer className="bg-slate-50 border-t py-8 text-center text-sm text-slate-500">
-          © 2024 LocalBoost. All rights reserved.
+          {t("common.copyright")}
         </footer>
 
       </main>

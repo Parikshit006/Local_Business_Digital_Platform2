@@ -5,8 +5,10 @@ import {
   createService,
   deleteService,
 } from "../api/serviceApi";
+import { useTranslation } from "../i18n";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { tab } = useParams();
 
@@ -144,10 +146,10 @@ export default function AdminDashboard() {
   };
 
   const tabs = [
-    { id: "overview", label: "Overview", icon: "dashboard" },
-    { id: "verification", label: "Verify Businesses", icon: "verified_user" },
-    { id: "services", label: "Manage Services", icon: "list_alt" },
-    { id: "users", label: "Users", icon: "group" },
+    { id: "overview", label: t("admin.overview"), icon: "dashboard" },
+    { id: "verification", label: t("admin.verifyBusinesses"), icon: "verified_user" },
+    { id: "services", label: t("admin.manageServices"), icon: "list_alt" },
+    { id: "users", label: t("admin.users"), icon: "group" },
   ];
 
   const currentTabLabel = tabs.find(t => t.id === activeTab)?.label || "Dashboard";
@@ -199,14 +201,14 @@ export default function AdminDashboard() {
               className="mt-4 w-full flex items-center gap-3 px-4 py-3 rounded-xl text-yellow-500 hover:text-yellow-400 hover:bg-white/5 transition-all duration-300"
             >
             <span className="material-symbols-outlined">rocket_launch</span>
-            <span className="font-ui text-sm font-medium uppercase tracking-widest">Command Centre</span>
+            <span className="font-ui text-sm font-medium uppercase tracking-widest">{t("admin.commandCentre")}</span>
           </button>
         </nav>
         
         <div className="mt-auto pt-6 border-t border-white/5">
           <button onClick={handleLogout} className="flex items-center gap-3 text-slate-400 hover:text-white px-4 py-3 w-full hover:bg-white/5 transition-all duration-300">
             <span className="material-symbols-outlined" data-icon="logout">logout</span>
-            <span className="font-ui text-sm font-medium uppercase tracking-widest">Logout</span>
+            <span className="font-ui text-sm font-medium uppercase tracking-widest">{t("common.logout")}</span>
           </button>
         </div>
       </aside>
@@ -247,7 +249,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="text-[10px] font-black text-[#1DB887] bg-[#1DB887]/5 px-2 py-1 rounded-full">+12%</span>
                   </div>
-                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">Total Businesses</h3>
+                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">{t("admin.totalBusinesses")}</h3>
                   <p className="text-3xl font-black text-primary mt-1 font-mono">120</p>
                 </div>
                 <div className="bg-white p-6 rounded-[24px] shadow-sm border border-primary/5 hover:border-[#1DB887]/30 transition-all group">
@@ -257,7 +259,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="text-[10px] font-black text-amber-500 bg-amber-500/5 px-2 py-1 rounded-full">4 Urgently</span>
                   </div>
-                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">Pending Verification</h3>
+                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">{t("admin.pendingVerification")}</h3>
                   <p className="text-3xl font-black text-primary mt-1 font-mono">6</p>
                 </div>
                 <div className="bg-white p-6 rounded-[24px] shadow-sm border border-primary/5 hover:border-[#1DB887]/30 transition-all group">
@@ -267,7 +269,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full">Active</span>
                   </div>
-                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">Active Services</h3>
+                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">{t("admin.activeServices")}</h3>
                   <p className="text-3xl font-black text-primary mt-1 font-mono">24</p>
                 </div>
                 <div className="bg-white p-6 rounded-[24px] shadow-sm border border-primary/5 hover:border-[#1DB887]/30 transition-all group">
@@ -277,7 +279,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="text-[10px] font-black text-purple-500 bg-purple-500/5 px-2 py-1 rounded-full">842 Total</span>
                   </div>
-                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">Emails Sent Today</h3>
+                  <h3 className="font-['Bricolage_Grotesque'] text-secondary/60 text-[10px] font-black uppercase tracking-[0.2em]">{t("admin.emailsSentToday")}</h3>
                   <p className="text-3xl font-black text-primary mt-1 font-mono">156</p>
                 </div>
               </div>
@@ -313,23 +315,23 @@ export default function AdminDashboard() {
 
                 {/*  Quick Actions Panel  */}
                 <div className="bg-[#0F1A3D] rounded-[32px] p-8 text-white">
-                  <h3 className="font-['Bricolage_Grotesque'] text-xl font-bold mb-6">Quick Pilot</h3>
+                  <h3 className="font-['Bricolage_Grotesque'] text-xl font-bold mb-6">{t("admin.quickPilot")}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <button onClick={() => navigate('/admin/service/new')} className="flex flex-col items-center bg-white/5 hover:bg-[#1DB887] p-4 rounded-2xl transition-all group">
                       <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">add_circle</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Add Service</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t("admin.addService")}</span>
                     </button>
                     <button onClick={() => navigate('/admin/verification')} className="flex flex-col items-center bg-white/5 hover:bg-[#1DB887] p-4 rounded-2xl transition-all group">
                       <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">verified</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Approve Biz</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t("admin.approveBiz")}</span>
                     </button>
                     <button onClick={() => navigate('/admin/commandcentre')} className="flex flex-col items-center bg-white/5 hover:bg-[#1DB887] p-4 rounded-2xl transition-all group">
                       <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">send</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Send Email</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t("admin.sendEmail")}</span>
                     </button>
                     <button onClick={() => navigate('/')} className="flex flex-col items-center bg-white/5 hover:bg-[#1DB887] p-4 rounded-2xl transition-all group">
                       <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">home</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Site Preview</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t("admin.sitePreview")}</span>
                     </button>
                   </div>
                 </div>

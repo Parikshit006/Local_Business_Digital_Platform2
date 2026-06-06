@@ -1,0 +1,113 @@
+/* assistantStyles.css */
+
+.AssistantPanel-container {
+  /* Inherits from Tailwind, but we add custom shadow and rounded corners for extra polish */
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 0 20px rgba(29, 184, 135, 0.1);
+}
+
+.AssistantPanel-slide-in {
+  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom right;
+}
+
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.Assistant-glow-pulse {
+  animation: glowPulse 2s infinite;
+}
+
+@keyframes glowPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.Assistant-tooltip {
+  animation: fadeInOut 5s forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Scrollbar styling for the chat */
+.AssistantPanel-container ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.AssistantPanel-container ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.AssistantPanel-container ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.AssistantPanel-container ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Mobile full screen drawer override */
+@media (max-width: 640px) {
+  .AssistantPanel-slide-in {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    animation: slideInMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .AssistantPanel-container .bg-\[\#1B2A5E\] {
+    border-radius: 0;
+  }
+}
+
+@keyframes slideInMobile {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

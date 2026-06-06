@@ -1,12 +1,51 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { TESTIMONIALS } from '../data/testimonials';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useTranslation, getLocalizedValue } from '../i18n';
+import LanguageToggle from '../components/LanguageToggle';
+import { getServices } from '../api/serviceApi';
+import { getHomepageTestimonials } from '../api/testimonialApi';
 
 
 export default function LocalBoostHomepage() {
   const scrollContainerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const { t, language } = useTranslation();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isActive = (path) => location.pathname === path;
+  const [services, setServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [testimonials, setTestimonials] = useState([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const data = await getServices();
+        const active = data.filter(s => s.isActive).slice(0, 6);
+        setServices(active);
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+    
+    const fetchTestimonials = async () => {
+      try {
+        const data = await getHomepageTestimonials();
+        setTestimonials(data);
+      } catch (err) {
+        console.error("Failed to fetch testimonials:", err);
+      } finally {
+        setLoadingTestimonials(false);
+      }
+    };
+
+    fetchServices();
+    fetchTestimonials();
+  }, []);
 
   const getCardWidth = () => {
     if (scrollContainerRef.current && scrollContainerRef.current.children.length > 0) {
@@ -62,9 +101,9 @@ export default function LocalBoostHomepage() {
 
 
 
-      <meta charset="utf-8" />
+      <meta charSet="utf-8" />
       <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-      <title>LocalBoost | Your Business, Digitally Transformed</title>
+      <title>{t("homepage.title")}</title>
 
       <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&amp;display=swap" rel="stylesheet" />
       <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
@@ -73,18 +112,41 @@ export default function LocalBoostHomepage() {
       {/*  Top Navigation Shell  */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-[#1B2A5E]/80 backdrop-blur-md shadow-sm dark:shadow-none">
         <div className="max-w-7xl mx-auto px-8 py-4 flex justify-between items-center">
-          <span className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-[#1B2A5E] dark:text-white">LocalBoost</span>
+          <Link to="/" className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-[#1B2A5E] dark:text-white">LocalBoost</Link>
+          
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8 font-ui text-sm font-medium tracking-tight">
-            <a className="text-[#1B2A5E] dark:text-slate-300 hover:text-[#1DB887] transition-colors" href="#">Services</a>
-            <a className="text-[#1B2A5E] dark:text-slate-300 hover:text-[#1DB887] transition-colors" href="#">How it Works</a>
-            <a className="text-[#1B2A5E] dark:text-slate-300 hover:text-[#1DB887] transition-colors" href="#">Pricing</a>
-            <a className="text-[#1B2A5E] dark:text-slate-300 hover:text-[#1DB887] transition-colors" href="#">About</a>
+            <Link to="/services" className={`${isActive('/services') ? 'text-[#1DB887]' : 'text-[#1B2A5E] dark:text-slate-300'} hover:text-[#1DB887] transition-colors`}>{t("navbar.services")}</Link>
+            <Link to="/how-it-works" className={`${isActive('/how-it-works') ? 'text-[#1DB887]' : 'text-[#1B2A5E] dark:text-slate-300'} hover:text-[#1DB887] transition-colors`}>{t("navbar.howItWorks")}</Link>
+            <Link to="/about" className={`${isActive('/about') ? 'text-[#1DB887]' : 'text-[#1B2A5E] dark:text-slate-300'} hover:text-[#1DB887] transition-colors`}>{t("navbar.about")}</Link>
           </div>
-          <div className="flex items-center space-x-4 font-ui text-sm">
-            <Link to="/sign-in" className="text-[#1B2A5E] dark:text-white font-medium hover:opacity-80 transition-all duration-200 active:scale-95">Sign In</Link>
-            <Link to="/flow" className="bg-[#1B2A5E] text-white px-6 py-2.5 rounded-[10px] font-bold hover:opacity-90 transition-all duration-200 active:scale-95 shadow-lg">Get Started</Link>
+          
+          <div className="hidden md:flex items-center space-x-4 font-ui text-sm">
+            <LanguageToggle className="border-[#1B2A5E]/15 text-[#1B2A5E]" />
+            <Link to="/sign-in" className="text-[#1B2A5E] dark:text-white font-medium hover:opacity-80 transition-all duration-200 active:scale-95">{t("common.signIn")}</Link>
+            <Link to="/business-setup" className="bg-[#1B2A5E] text-white px-6 py-2.5 rounded-[10px] font-bold hover:opacity-90 transition-all duration-200 active:scale-95 shadow-lg">{t("common.getStarted")}</Link>
+          </div>
+
+          {/* Mobile Hamburger Toggle */}
+          <div className="md:hidden flex items-center space-x-4">
+            <LanguageToggle className="border-[#1B2A5E]/15 text-[#1B2A5E]" />
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-[#1B2A5E] dark:text-white focus:outline-none">
+              <span className="material-symbols-outlined text-2xl">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white dark:bg-[#1B2A5E] shadow-xl absolute top-full left-0 w-full border-t border-primary/5 py-4 px-8 flex flex-col space-y-4">
+            <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`${isActive('/services') ? 'text-[#1DB887]' : 'text-[#1B2A5E] dark:text-slate-300'} font-medium`}>{t("navbar.services")}</Link>
+            <Link to="/how-it-works" onClick={() => setIsMobileMenuOpen(false)} className={`${isActive('/how-it-works') ? 'text-[#1DB887]' : 'text-[#1B2A5E] dark:text-slate-300'} font-medium`}>{t("navbar.howItWorks")}</Link>
+            <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className={`${isActive('/about') ? 'text-[#1DB887]' : 'text-[#1B2A5E] dark:text-slate-300'} font-medium`}>{t("navbar.about")}</Link>
+            <hr className="border-primary/5" />
+            <Link to="/sign-in" onClick={() => setIsMobileMenuOpen(false)} className="text-[#1B2A5E] dark:text-white font-medium">{t("common.signIn")}</Link>
+            <Link to="/business-setup" onClick={() => setIsMobileMenuOpen(false)} className="bg-[#1B2A5E] text-white px-6 py-3 rounded-[10px] font-bold text-center">{t("common.getStarted")}</Link>
+          </div>
+        )}
       </nav>
       {/*  Hero Section  */}
       <section className="relative pt-32 pb-24 overflow-hidden bg-surface">
@@ -92,26 +154,26 @@ export default function LocalBoostHomepage() {
           {/*  Left Content  */}
           <div className="lg:col-span-7">
             <span className="inline-block px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold tracking-widest uppercase mb-6">
-              All-in-One Digital Platform for Local Businesses
+              {t("homepage.heroBadge")}
             </span>
             <h1 className="font-['Bricolage_Grotesque'] text-[60px] leading-[1.1] font-extrabold text-primary mb-8">
-              Your Business, Digitally Transformed
+              {t("homepage.heroTitle")}
             </h1>
             <p className="text-lg text-on-surface-variant max-w-xl mb-12 font-medium">
-              Bridge the gap between your physical storefront and the digital marketplace. We handle the tech, so you can focus on your craft.
+              {t("homepage.heroSubtitle")}
             </p>
             <div className="flex flex-wrap gap-12">
               <div>
                 <p className="text-4xl font-bold text-primary font-mono">12k+</p>
-                <p className="text-xs font-bold text-outline tracking-wider uppercase mt-1">Vendors Active</p>
+                <p className="text-xs font-bold text-outline tracking-wider uppercase mt-1">{t("homepage.vendorsActive")}</p>
               </div>
               <div>
                 <p className="text-4xl font-bold text-secondary font-mono">94%</p>
-                <p className="text-xs font-bold text-outline tracking-wider uppercase mt-1">Growth Rate</p>
+                <p className="text-xs font-bold text-outline tracking-wider uppercase mt-1">{t("homepage.growthRate")}</p>
               </div>
               <div>
                 <p className="text-4xl font-bold text-primary font-mono">24/7</p>
-                <p className="text-xs font-bold text-outline tracking-wider uppercase mt-1">Expert Support</p>
+                <p className="text-xs font-bold text-outline tracking-wider uppercase mt-1">{t("homepage.expertSupport")}</p>
               </div>
             </div>
           </div>
@@ -125,8 +187,8 @@ export default function LocalBoostHomepage() {
                     <span className="text-primary font-bold">A</span>
                   </div>
                   <div>
-                    <p className="text-sm font-bold">Welcome, Arjun</p>
-                    <p className="text-[10px] opacity-70">Business Dashboard</p>
+                    <p className="text-sm font-bold">{t("homepage.welcomeArjun")}</p>
+                    <p className="text-[10px] opacity-70">{t("homepage.businessDashboard")}</p>
                   </div>
                 </div>
                 <span className="material-symbols-outlined text-white/80">notifications</span>
@@ -136,30 +198,30 @@ export default function LocalBoostHomepage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-surface-container-low border border-primary/5">
                     <span className="material-symbols-outlined text-secondary mb-2" data-icon="language">language</span>
-                    <p className="text-xs font-bold text-primary">Website Builder</p>
-                    <p className="text-[10px] text-outline">Live &amp; Syncing</p>
+                    <p className="text-xs font-bold text-primary">{t("homepage.websiteBuilder")}</p>
+                    <p className="text-[10px] text-outline">{t("homepage.liveSyncing")}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-surface-container-low border border-primary/5">
                     <span className="material-symbols-outlined text-secondary mb-2" data-icon="share">share</span>
-                    <p className="text-xs font-bold text-primary">Social Media</p>
-                    <p className="text-[10px] text-outline">Active Campaigns</p>
+                    <p className="text-xs font-bold text-primary">{t("homepage.socialMedia")}</p>
+                    <p className="text-[10px] text-outline">{t("homepage.activeCampaigns")}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-surface-container-low border border-primary/5">
                     <span className="material-symbols-outlined text-secondary mb-2" data-icon="print">print</span>
-                    <p className="text-xs font-bold text-primary">Print Media</p>
-                    <p className="text-[10px] text-outline">Design Ready</p>
+                    <p className="text-xs font-bold text-primary">{t("homepage.printMedia")}</p>
+                    <p className="text-[10px] text-outline">{t("homepage.designReady")}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-surface-container-low border border-primary/5">
                     <span className="material-symbols-outlined text-secondary mb-2" data-icon="description">description</span>
-                    <p className="text-xs font-bold text-primary">GST Filing</p>
-                    <p className="text-[10px] text-outline">Up to date</p>
+                    <p className="text-xs font-bold text-primary">{t("homepage.gstFiling")}</p>
+                    <p className="text-[10px] text-outline">{t("homepage.upToDate")}</p>
                   </div>
                 </div>
                 {/*  Status Bar  */}
                 <div className="bg-tertiary-fixed/20 p-4 rounded-xl flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-                    <p className="text-[11px] font-bold text-tertiary">3 businesses awaiting approval</p>
+                    <p className="text-[11px] font-bold text-tertiary">{t("homepage.businessesAwaitingApproval")}</p>
                   </div>
                   <span className="material-symbols-outlined text-tertiary text-sm" data-icon="chevron_right">chevron_right</span>
                 </div>
@@ -176,19 +238,19 @@ export default function LocalBoostHomepage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <h3 className="text-5xl font-extrabold text-white mb-2 font-mono">97%</h3>
-              <p className="text-on-primary-container text-sm font-medium">Customer Success</p>
+              <p className="text-on-primary-container text-sm font-medium">{t("homepage.statsCustomerSuccess")}</p>
             </div>
             <div className="text-center">
               <h3 className="text-5xl font-extrabold text-white mb-2 font-mono">78%</h3>
-              <p className="text-on-primary-container text-sm font-medium">Faster Setup</p>
+              <p className="text-on-primary-container text-sm font-medium">{t("homepage.statsFasterSetup")}</p>
             </div>
             <div className="text-center">
               <h3 className="text-5xl font-extrabold text-white mb-2 font-mono">3.5x</h3>
-              <p className="text-on-primary-container text-sm font-medium">ROI on Average</p>
+              <p className="text-on-primary-container text-sm font-medium">{t("homepage.statsROI")}</p>
             </div>
             <div className="text-center">
               <h3 className="text-5xl font-extrabold text-white mb-2 font-mono">$4.2T</h3>
-              <p className="text-on-primary-container text-sm font-medium">Market Potential</p>
+              <p className="text-on-primary-container text-sm font-medium">{t("homepage.statsMarket")}</p>
             </div>
           </div>
         </div>
@@ -197,37 +259,37 @@ export default function LocalBoostHomepage() {
       <section className="py-32 bg-surface">
         <div className="max-w-7xl mx-auto px-8">
           <div className="mb-20">
-            <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">The Problem</p>
-            <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary max-w-2xl">Local Businesses Are Being Left Behind</h2>
+            <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">{t("homepage.problemLabel")}</p>
+            <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary max-w-2xl">{t("homepage.problemTitle")}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-surface-container-low p-10 rounded-[24px] hover:bg-white transition-colors duration-300">
               <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-primary" data-icon="cloud_off">cloud_off</span>
               </div>
-              <h4 className="text-xl font-bold text-primary mb-4">Zero Online Visibility</h4>
-              <p className="text-on-surface-variant leading-relaxed">Most local shops rely solely on foot traffic. Without a digital presence, you're invisible to 80% of modern shoppers.</p>
+              <h4 className="text-xl font-bold text-primary mb-4">{t("homepage.problemVisibilityTitle")}</h4>
+              <p className="text-on-surface-variant leading-relaxed">{t("homepage.problemVisibilityDesc")}</p>
             </div>
             <div className="bg-surface-container-low p-10 rounded-[24px] hover:bg-white transition-colors duration-300">
               <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-primary" data-icon="construction">construction</span>
               </div>
-              <h4 className="text-xl font-bold text-primary mb-4">Technical Struggles</h4>
-              <p className="text-on-surface-variant leading-relaxed">Building a website shouldn't feel like rocket science. Local owners shouldn't have to learn code to sell online.</p>
+              <h4 className="text-xl font-bold text-primary mb-4">{t("homepage.problemTechTitle")}</h4>
+              <p className="text-on-surface-variant leading-relaxed">{t("homepage.problemTechDesc")}</p>
             </div>
             <div className="bg-surface-container-low p-10 rounded-[24px] hover:bg-white transition-colors duration-300">
               <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-primary" data-icon="payments">payments</span>
               </div>
-              <h4 className="text-xl font-bold text-primary mb-4">Complex Compliance</h4>
-              <p className="text-on-surface-variant leading-relaxed">GST, tax filings, and digital invoicing are massive hurdles that slow down your real work.</p>
+              <h4 className="text-xl font-bold text-primary mb-4">{t("homepage.problemComplianceTitle")}</h4>
+              <p className="text-on-surface-variant leading-relaxed">{t("homepage.problemComplianceDesc")}</p>
             </div>
             <div className="bg-surface-container-low p-10 rounded-[24px] hover:bg-white transition-colors duration-300">
               <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-primary" data-icon="campaign">campaign</span>
               </div>
-              <h4 className="text-xl font-bold text-primary mb-4">Marketing Blindness</h4>
-              <p className="text-on-surface-variant leading-relaxed">Knowing where to spend on ads or how to manage social media is a full-time job you don't have time for.</p>
+              <h4 className="text-xl font-bold text-primary mb-4">{t("homepage.problemMarketingTitle")}</h4>
+              <p className="text-on-surface-variant leading-relaxed">{t("homepage.problemMarketingDesc")}</p>
             </div>
           </div>
         </div>
@@ -237,83 +299,45 @@ export default function LocalBoostHomepage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
             <div className="max-w-2xl">
-              <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">Our Services</p>
-              <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary">Everything You Need to Grow Online</h2>
+              <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">{t("homepage.servicesLabel")}</p>
+              <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary">{t("homepage.servicesTitle")}</h2>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/*  Website Builder  */}
-            <div className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-primary text-3xl" data-icon="language">language</span>
-              </div>
-              <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">Website Builder</h4>
-              <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">Create a stunning, SEO-optimized website in minutes with zero coding skills required. Fully responsive and ready to sell.</p>
-              <div className="flex items-center text-secondary font-bold cursor-pointer group">
-                <span className="text-sm">Read more</span>
-                <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
-              </div>
-            </div>
-            {/*  Social Media Setup  */}
-            <div className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-primary text-3xl" data-icon="share">share</span>
-              </div>
-              <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">Social Media Setup</h4>
-              <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">Get your profiles optimized and automated. Reach your local community where they spend time most.</p>
-              <div className="flex items-center text-secondary font-bold cursor-pointer group">
-                <span className="text-sm">Read more</span>
-                <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
-              </div>
-            </div>
-            {/*  Print & Branding  */}
-            <div className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-primary text-3xl" data-icon="print">print</span>
-              </div>
-              <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">Print &amp; Branding</h4>
-              <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">Professional logos, business cards, and flyers that match your digital identity perfectly for a unified look.</p>
-              <div className="flex items-center text-secondary font-bold cursor-pointer group">
-                <span className="text-sm">Read more</span>
-                <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
-              </div>
-            </div>
-            {/*  GST Registration  */}
-            <div className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-primary text-3xl" data-icon="description">description</span>
-              </div>
-              <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">GST Registration</h4>
-              <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">Navigate the complexities of business compliance with expert-led registration and filing services.</p>
-              <div className="flex items-center text-secondary font-bold cursor-pointer group">
-                <span className="text-sm">Read more</span>
-                <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
-              </div>
-            </div>
-            {/*  Inventory Suite  */}
-            <div className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-primary text-3xl" data-icon="inventory_2">inventory_2</span>
-              </div>
-              <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">Inventory Suite</h4>
-              <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">Smart stock management that keeps track of every item, ensuring you never miss a sale or overstock.</p>
-              <div className="flex items-center text-secondary font-bold cursor-pointer group">
-                <span className="text-sm">Read more</span>
-                <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
-              </div>
-            </div>
-            {/*  Ad Performance  */}
-            <div className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8">
-                <span className="material-symbols-outlined text-primary text-3xl" data-icon="trending_up">trending_up</span>
-              </div>
-              <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">Ad Performance</h4>
-              <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">Data-driven marketing campaigns that maximize your ROI by targeting the right customers at the right time.</p>
-              <div className="flex items-center text-secondary font-bold cursor-pointer group">
-                <span className="text-sm">Read more</span>
-                <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
-              </div>
-            </div>
+            {loadingServices ? (
+              [...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 h-[340px] animate-pulse flex flex-col">
+                  <div className="w-14 h-14 bg-slate-200 rounded-2xl mb-8 flex-shrink-0"></div>
+                  <div className="h-6 bg-slate-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-slate-200 rounded w-full mb-2"></div>
+                  <div className="h-4 bg-slate-200 rounded w-3/4 mb-auto"></div>
+                  <div className="h-4 bg-slate-200 rounded w-1/4 mt-8"></div>
+                </div>
+              ))
+            ) : services.length > 0 ? (
+              services.map((service) => (
+                <div key={service._id} className="bg-white p-10 rounded-[32px] shadow-sm border border-primary/5 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                  <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-8 flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-3xl">{service.icon || 'storefront'}</span>
+                  </div>
+                  <h4 className="font-['Bricolage_Grotesque'] text-2xl font-bold text-primary mb-4">{getLocalizedValue(service.title, language)}</h4>
+                  <p className="font-ui text-on-surface-variant leading-relaxed mb-8 flex-grow">{getLocalizedValue(service.shortDescription, language)}</p>
+                  <Link to={`/service/${service._id}`} className="flex items-center text-secondary font-bold cursor-pointer group mt-auto">
+                    <span className="text-sm">{t("common.readMore")}</span>
+                    <span className="material-symbols-outlined ml-2 group-hover:translate-x-2 transition-transform text-lg" data-icon="arrow_forward">arrow_forward</span>
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <p className="col-span-full text-center text-on-surface-variant font-medium py-10">No services available right now.</p>
+            )}
+          </div>
+          
+          <div className="mt-16 flex justify-center">
+            <Link to="/services" className="bg-[#1DB887] text-white px-10 py-5 rounded-[12px] font-bold text-lg hover:scale-105 transition-transform shadow-[0_8px_24px_rgba(29,184,135,0.30)] flex items-center gap-2">
+              {t("common.viewAll")}
+              <span className="material-symbols-outlined text-xl">arrow_forward</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -321,8 +345,8 @@ export default function LocalBoostHomepage() {
       <section className="py-32 bg-surface">
         <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-24">
-            <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">The Process</p>
-            <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary">From Offline to Online in 72 Hours</h2>
+            <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">{t("homepage.processLabel")}</p>
+            <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary">{t("homepage.processTitle")}</h2>
           </div>
           <div className="relative max-w-4xl mx-auto">
             {/*  Vertical Line  */}
@@ -331,8 +355,8 @@ export default function LocalBoostHomepage() {
               {/*  Step 1  */}
               <div className="relative flex flex-col md:flex-row items-start md:items-center">
                 <div className="md:w-1/2 md:pr-24 text-left md:text-right order-2 md:order-1 mt-8 md:mt-0">
-                  <h4 className="text-2xl font-bold text-primary mb-4">Day 1: Sign Up</h4>
-                  <p className="text-on-surface-variant">Simple onboarding. Tell us about your business, upload your logo, and pick your primary goals.</p>
+                  <h4 className="text-2xl font-bold text-primary mb-4">{t("homepage.step1Title")}</h4>
+                  <p className="text-on-surface-variant">{t("homepage.step1Desc")}</p>
                 </div>
                 <div className="absolute left-8 md:left-1/2 -translate-x-1/2 w-16 h-16 bg-white border-4 border-primary rounded-full flex items-center justify-center z-10 order-1">
                   <span className="text-primary font-bold text-xl">01</span>
@@ -346,15 +370,15 @@ export default function LocalBoostHomepage() {
                   <span className="text-secondary font-bold text-xl">02</span>
                 </div>
                 <div className="md:w-1/2 md:pl-24 text-left order-3">
-                  <h4 className="text-2xl font-bold text-primary mb-4">Day 2: Set Up</h4>
-                  <p className="text-on-surface-variant">Our AI engines build your site and sync your social handles while you approve the branding mockups.</p>
+                  <h4 className="text-2xl font-bold text-primary mb-4">{t("homepage.step2Title")}</h4>
+                  <p className="text-on-surface-variant">{t("homepage.step2Desc")}</p>
                 </div>
               </div>
               {/*  Step 3  */}
               <div className="relative flex flex-col md:flex-row items-start md:items-center">
                 <div className="md:w-1/2 md:pr-24 text-left md:text-right order-2 md:order-1 mt-8 md:mt-0">
-                  <h4 className="text-2xl font-bold text-primary mb-4">Day 3: Launch</h4>
-                  <p className="text-on-surface-variant">Go live across all platforms. Receive your first digital orders and start tracking your growth metrics.</p>
+                  <h4 className="text-2xl font-bold text-primary mb-4">{t("homepage.step3Title")}</h4>
+                  <p className="text-on-surface-variant">{t("homepage.step3Desc")}</p>
                 </div>
                 <div className="absolute left-8 md:left-1/2 -translate-x-1/2 w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center z-10 order-1">
                   <span className="font-bold text-xl">03</span>
@@ -370,9 +394,9 @@ export default function LocalBoostHomepage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
             <div className="max-w-xl">
-              <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">REAL RESULTS</p>
-              <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary mb-4">What Our Clients Achieved</h2>
-              <p className="text-on-surface-variant font-medium">Real impact for local vendors across India.</p>
+              <p className="text-secondary font-bold text-xs tracking-[0.2em] uppercase mb-4">{t("homepage.resultsLabel")}</p>
+              <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold text-primary mb-4">{t("homepage.resultsTitle")}</h2>
+              <p className="text-on-surface-variant font-medium">{t("homepage.resultsSubtitle")}</p>
             </div>
             <div className="flex space-x-4 mt-8 md:mt-0">
               <button className="w-12 h-12 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-300" onClick={scrollLeft}><span className="material-symbols-outlined">arrow_back</span></button>
@@ -380,50 +404,55 @@ export default function LocalBoostHomepage() {
             </div>
           </div>
           <div className="flex gap-8 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-12" id="results-carousel" ref={scrollContainerRef} onScroll={handleScroll} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-            {TESTIMONIALS.filter(t => t.status === 'published').map((t) => (
-              <div key={t.id} className="min-w-[400px] bg-white rounded-[32px] border border-primary/5 shadow-sm hover:-translate-y-2 transition-transform duration-300 snap-start flex flex-col h-full">
-                <div className="h-[200px] relative overflow-hidden rounded-t-[32px]">
-                  <img alt={t.name} className="w-full h-full object-cover" src={t.thumbnail} />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur rounded-full text-[10px] font-bold text-primary uppercase">{t.category}</span>
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur rounded-full text-[10px] font-bold text-secondary flex items-center">
-                      <span className="material-symbols-outlined text-[12px] mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> {t.rating.toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-8 space-y-6 flex-grow">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden">
-                      <img alt={t.name} className="w-full h-full object-cover" src={t.avatar} />
-                    </div>
-                    <div>
-                      <div className="flex items-center">
-                        <p className="font-bold text-primary">{t.name}</p>
-                        <div className="w-2 h-2 bg-teal-500 rounded-full ml-2"></div>
+            {loadingTestimonials ? (
+              <div className="w-full text-center text-primary/50 font-bold py-10 animate-pulse">Loading Success Stories...</div>
+            ) : testimonials.length > 0 ? (
+              testimonials.map((item) => (
+                <div key={item._id} className="min-w-[400px] bg-white rounded-[32px] border border-primary/5 shadow-sm hover:-translate-y-2 transition-transform duration-300 snap-start flex flex-col h-full overflow-hidden">
+                  <div className="p-8 space-y-6 flex-grow flex flex-col">
+                    <div className="flex items-center space-x-4 mb-2">
+                      <div className="w-16 h-16 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                        {item.profileImage ? <img alt={item.customerName} className="w-full h-full object-cover" src={item.profileImage} /> : <span className="text-xl font-bold text-primary">{item.customerName.charAt(0)}</span>}
                       </div>
-                      <p className="text-xs text-on-surface-variant font-medium">{t.business}</p>
+                      <div>
+                        <div className="flex items-center">
+                          <p className="font-bold text-primary text-lg">{item.customerName}</p>
+                        </div>
+                        <p className="text-sm text-[#1DB887] font-bold">{item.businessName}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-outline tracking-wider uppercase">THEIR GOAL</p>
-                    <p className="text-sm font-medium">{t.goal}</p>
-                    <p className="text-[10px] font-bold text-secondary tracking-wider uppercase pt-2">WHAT WE DELIVERED</p>
-                    <p className="text-sm font-bold text-secondary">{t.delivered}</p>
-                  </div>
-                  <div className="bg-surface-container-low p-6 rounded-2xl relative">
-                    <span className="material-symbols-outlined absolute top-4 left-4 text-secondary/20 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-                    <p className="italic text-sm text-on-surface-variant leading-relaxed relative z-10">{t.quote}</p>
-                    <div className="mt-4 inline-flex items-center bg-secondary/10 px-3 py-1 rounded-full">
-                      <span className="text-xs font-bold text-secondary">{t.impact}</span>
+                    
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <span key={i} className={`material-symbols-outlined text-[18px] ${i <= item.rating ? 'text-amber-400' : 'text-primary/10'}`} style={{ fontVariationSettings: i <= item.rating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      ))}
                     </div>
+
+                    <div className="bg-surface-container-low p-6 rounded-2xl relative flex-grow mt-4">
+                      <span className="material-symbols-outlined absolute top-4 left-4 text-secondary/10 text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
+                      <p className="italic text-base text-on-surface-variant leading-relaxed relative z-10 pt-4">"{getLocalizedValue(item.shortQuote, language)}"</p>
+                      
+                      {item.resultTitle && getLocalizedValue(item.resultTitle, language) && (
+                        <div className="mt-6 inline-flex items-center bg-[#1DB887]/10 px-4 py-2 rounded-xl border border-[#1DB887]/20">
+                          <span className="text-sm font-bold text-[#1DB887]">{getLocalizedValue(item.resultTitle, language)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Link to={`/success-stories/${item._id}`} className="mt-6 w-full bg-primary/5 hover:bg-primary text-primary hover:text-white px-6 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2">
+                      <span>Read Story</span>
+                      <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                    </Link>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="w-full text-center text-primary/50 font-medium py-10">Success stories are being updated. Check back soon.</div>
+            )}
           </div>
           {/*  Indicators  */}
           <div className="flex justify-center items-center space-x-2 mt-8">
-            {TESTIMONIALS.filter(t => t.status === 'published').map((_, i) => (
+            {!loadingTestimonials && testimonials.map((_, i) => (
               <div
                 key={i}
                 onClick={() => scrollToDot(i)}
@@ -438,43 +467,43 @@ export default function LocalBoostHomepage() {
       <section className="py-32 bg-primary text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div>
-            <p className="text-secondary-fixed font-bold text-xs tracking-[0.2em] uppercase mb-6">Why LocalBoost</p>
-            <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold mb-10">We Scale While You Stay Local</h2>
+            <p className="text-secondary-fixed font-bold text-xs tracking-[0.2em] uppercase mb-6">{t("homepage.uspLabel")}</p>
+            <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-5xl font-bold mb-10">{t("homepage.uspTitle")}</h2>
             <ul className="space-y-6">
               <li className="flex items-start space-x-4">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0 mt-1">
                   <span className="material-symbols-outlined text-primary text-xs" data-icon="check">check</span>
                 </div>
-                <p className="text-lg">One dashboard for all operations</p>
+                <p className="text-lg">{t("homepage.uspDashboard")}</p>
               </li>
               <li className="flex items-start space-x-4">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0 mt-1">
                   <span className="material-symbols-outlined text-primary text-xs" data-icon="check">check</span>
                 </div>
-                <p className="text-lg">No technical expertise required ever</p>
+                <p className="text-lg">{t("homepage.uspNoTech")}</p>
               </li>
               <li className="flex items-start space-x-4">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0 mt-1">
                   <span className="material-symbols-outlined text-primary text-xs" data-icon="check">check</span>
                 </div>
-                <p className="text-lg">Enterprise-grade marketing for small shops</p>
+                <p className="text-lg">{t("homepage.uspMarketing")}</p>
               </li>
               <li className="flex items-start space-x-4">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0 mt-1">
                   <span className="material-symbols-outlined text-primary text-xs" data-icon="check">check</span>
                 </div>
-                <p className="text-lg">Integrated GST &amp; Tax compliance tools</p>
+                <p className="text-lg">{t("homepage.uspGST")}</p>
               </li>
             </ul>
           </div>
           <div className="relative">
             <div className="bg-white/10 backdrop-blur-xl p-10 rounded-[40px] border border-white/10">
-              <h4 className="text-2xl font-bold mb-8">Quarterly Business Impact</h4>
+              <h4 className="text-2xl font-bold mb-8">{t("homepage.uspImpactTitle")}</h4>
               <div className="space-y-8">
                 <div>
                   <div className="flex justify-between mb-3">
-                    <span className="text-white/80">Average ROI</span>
-                    <span className="font-bold text-secondary-fixed">4.5x Increase</span>
+                    <span className="text-white/80">{t("homepage.uspAvgROI")}</span>
+                    <span className="font-bold text-secondary-fixed">{t("homepage.uspROIValue")}</span>
                   </div>
                   <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-secondary-fixed w-[85%]"></div>
@@ -482,8 +511,8 @@ export default function LocalBoostHomepage() {
                 </div>
                 <div>
                   <div className="flex justify-between mb-3">
-                    <span className="text-white/80">Revenue Growth</span>
-                    <span className="font-bold text-secondary-fixed">60% Increase</span>
+                    <span className="text-white/80">{t("homepage.uspRevenueGrowth")}</span>
+                    <span className="font-bold text-secondary-fixed">{t("homepage.uspRevenueValue")}</span>
                   </div>
                   <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-secondary-fixed w-[60%]"></div>
@@ -501,7 +530,7 @@ export default function LocalBoostHomepage() {
                       <img className="w-full h-full rounded-full object-cover" data-alt="Portrait of a friendly male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4N9CN8Uh_XTNchJWMn3NWUkvXt_HlQnqMVtuyDOt-KbwVI5kBC1b1csXxkDYzmI7vmFhnnBdAIo5nQr-BZtxHl4J2jNiUVIJYuEKb0RC4Eqf1Rz9BnW918UghybszmUrNrCFSQN2xpa4DrekHFg6kQ04D6QCCcMvAHAATHn5zHksc0XdvzQ_tfFIPdiu7MvFpXLVQVT7pzz5xcERSBMMAuLQWumZ92bQlzsKxbbt4RzdgSpMaijMps-1T38aOVXMUWBCjgCBtvWw" />
                     </div>
                   </div>
-                  <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Trusted by 12,000+ Owners</p>
+                  <p className="text-xs font-bold text-white/60 uppercase tracking-widest">{t("homepage.uspTrustedBy")}</p>
                 </div>
               </div>
             </div>
@@ -515,11 +544,11 @@ export default function LocalBoostHomepage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="bg-primary-container rounded-[48px] p-12 lg:p-24 text-center relative overflow-hidden">
             <div className="relative z-10">
-              <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-6xl font-bold text-white mb-8">Ready to Boost Your Local Legacy?</h2>
-              <p className="text-on-primary-container text-xl max-w-2xl mx-auto mb-12">Join the digital revolution. Start your transformation today with no upfront cost or commitments.</p>
+              <h2 className="font-['Bricolage_Grotesque'] text-4xl lg:text-6xl font-bold text-white mb-8">{t("homepage.ctaTitle")}</h2>
+              <p className="text-on-primary-container text-xl max-w-2xl mx-auto mb-12">{t("homepage.ctaSubtitle")}</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Link to="/business-setup" className="w-full sm:w-auto bg-[#1DB887] text-white px-10 py-5 rounded-[12px] font-bold text-lg hover:scale-105 transition-transform shadow-[0_8px_24px_rgba(29,184,135,0.30)]">Start Free — No Card Needed</Link>
-                <Link to="/business-setup" className="w-full sm:w-auto bg-transparent border border-white/20 text-white px-10 py-5 rounded-[12px] font-bold text-lg hover:bg-white/5 transition-colors">Talk to Our Team</Link>
+                <Link to="/business-setup" className="w-full sm:w-auto bg-[#1DB887] text-white px-10 py-5 rounded-[12px] font-bold text-lg hover:scale-105 transition-transform shadow-[0_8px_24px_rgba(29,184,135,0.30)]">{t("homepage.ctaButton")}</Link>
+                <Link to="/business-setup" className="w-full sm:w-auto bg-transparent border border-white/20 text-white px-10 py-5 rounded-[12px] font-bold text-lg hover:bg-white/5 transition-colors">{t("homepage.ctaTalk")}</Link>
               </div>
             </div>
             {/*  Background decorative shapes  */}
@@ -533,13 +562,13 @@ export default function LocalBoostHomepage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-8 md:space-y-0">
           <div className="flex flex-col items-center md:items-start space-y-4">
             <span className="font-['Bricolage_Grotesque'] text-lg font-bold text-[#1B2A5E] dark:text-slate-400">LocalBoost</span>
-            <p className="font-ui text-xs text-[#1B2A5E] dark:text-slate-400">© 2024 LocalBoost. All rights reserved.</p>
+            <p className="font-ui text-xs text-[#1B2A5E] dark:text-slate-400">{t("common.copyright")}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-8 font-ui text-xs text-[#1B2A5E] dark:text-slate-400">
-            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">Privacy Policy</a>
-            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">Terms of Service</a>
-            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">Cookie Policy</a>
-            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">Support</a>
+            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">{t("common.privacyPolicy")}</a>
+            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">{t("common.termsOfService")}</a>
+            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">{t("common.cookiePolicy")}</a>
+            <a className="hover:text-[#1DB887] transition-colors cursor-pointer" href="#">{t("common.support")}</a>
           </div>
         </div>
       </footer>
@@ -547,4 +576,3 @@ export default function LocalBoostHomepage() {
     </div>
   );
 }
-

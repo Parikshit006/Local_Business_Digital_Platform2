@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "../i18n";
 
 export default function SignInSignUp() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({
@@ -66,7 +68,7 @@ export default function SignInSignUp() {
       return; 
     }
 
-    alert("Signup successful. Verify email.");
+    alert(t("auth.signupSuccess"));
     setIsLogin(true);
   };
 
@@ -89,38 +91,38 @@ export default function SignInSignUp() {
             <div className="relative z-10">
               <div className="mb-10">
                 <span className="text-secondary-fixed-dim text-xs uppercase tracking-[0.2em] mb-4 block">
-                  The Digital Frontier
+                  {t("auth.digitalFrontier")}
                 </span>
                 <h1 className="text-4xl font-bold text-white leading-tight">
-                  Your complete digital platform.
+                  {t("auth.yourCompletePlatform")}
                 </h1>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <h3 className="text-white font-medium text-lg mb-1">
-                    Omnichannel Management
+                    {t("auth.omnichannelTitle")}
                   </h3>
                   <p className="text-white/80 text-sm">
-                    Control every touchpoint of your customer journey from a single dashboard.
+                    {t("auth.omnichannelDesc")}
                   </p>
                 </div>
 
                 <div>
                   <h3 className="text-white font-medium text-lg mb-1">
-                    Automated Optimization
+                    {t("auth.automatedTitle")}
                   </h3>
                   <p className="text-white/80 text-sm">
-                    Let intelligent algorithms scale your reach efficiently.
+                    {t("auth.automatedDesc")}
                   </p>
                 </div>
 
                 <div>
                   <h3 className="text-white font-medium text-lg mb-1">
-                    Secure Institutional Growth
+                    {t("auth.secureTitle")}
                   </h3>
                   <p className="text-white/80 text-sm">
-                    Enterprise-grade security ensuring your data stays protected.
+                    {t("auth.secureDesc")}
                   </p>
                 </div>
               </div>
@@ -130,7 +132,7 @@ export default function SignInSignUp() {
             <div className="relative z-10 mt-auto pt-10">
               <div className="p-5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10">
                 <p className="text-white/80 text-sm italic">
-                  "LocalBoost has fundamentally shifted how we perceive our local market."
+                  {t("auth.testimonialQuote")}
                 </p>
               </div>
             </div>
@@ -162,12 +164,12 @@ export default function SignInSignUp() {
               {/* Title */}
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-primary mb-2">
-                  {isLogin ? "Welcome back" : "Create Account"}
+                  {isLogin ? t("auth.welcomeBack") : t("auth.createAccount")}
                 </h2>
                 <p className="text-on-surface-variant text-sm">
                   {isLogin
-                    ? "Enter your credentials to continue"
-                    : "Fill details to create your account"}
+                    ? t("auth.enterCredentials")
+                    : t("auth.fillDetails")}
                 </p>
               </div>
 
@@ -180,7 +182,7 @@ export default function SignInSignUp() {
                   <>
                     <input
                       name="name"
-                      placeholder="Full Name"
+                      placeholder={t("auth.fullName")}
                       onChange={handleChange}
                       required
                       className="w-full h-12 px-4 rounded-lg bg-surface-container-lowest"
@@ -188,7 +190,7 @@ export default function SignInSignUp() {
 
                     <input
                       name="phone"
-                      placeholder="Phone Number"
+                      placeholder={t("auth.phoneNumber")}
                       onChange={handleChange}
                       required
                       className="w-full h-12 px-4 rounded-lg bg-surface-container-lowest"
@@ -199,7 +201,7 @@ export default function SignInSignUp() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="Email Address"
+                  placeholder={t("auth.emailAddress")}
                   onChange={handleChange}
                   required
                   className="w-full h-12 px-4 rounded-lg bg-surface-container-lowest"
@@ -208,7 +210,7 @@ export default function SignInSignUp() {
                 <input
                   type="password"
                   name="password"
-                  placeholder="Password"
+                  placeholder={t("auth.password")}
                   onChange={handleChange}
                   required
                   className="w-full h-12 px-4 rounded-lg bg-surface-container-lowest"
@@ -218,20 +220,20 @@ export default function SignInSignUp() {
                   type="submit"
                   className="w-full py-3 bg-secondary text-white font-bold rounded-xl"
                 >
-                  {isLogin ? "Sign In" : "Sign Up"}
+                  {isLogin ? t("auth.signInButton") : t("auth.signUpButton")}
                 </button>
               </form>
 
               {/* Toggle */}
               <p className="mt-6 text-sm text-center text-on-surface-variant">
                 {isLogin
-                  ? "Don't have an account?"
-                  : "Already have an account?"}
+                  ? t("auth.noAccount")
+                  : t("auth.haveAccount")}
                 <button
                   onClick={() => setIsLogin(!isLogin)}
                   className="ml-1 text-primary font-bold"
                 >
-                  {isLogin ? "Create account" : "Login"}
+                  {isLogin ? t("auth.createAccountLink") : t("auth.loginLink")}
                 </button>
               </p>
             </div>

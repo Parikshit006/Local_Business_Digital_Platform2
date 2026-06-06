@@ -8,6 +8,7 @@ const connectDB = require("./config/mongodb");
 const authRoutes = require("./routes/authRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const businessRoutes = require("./routes/businessRoutes");
+const testimonialRoutes = require("./routes/testimonialRoutes");
 
 const app = express();
 
@@ -22,6 +23,7 @@ connectDB();  // ✅ clean call
 app.use("/auth", authRoutes);
 app.use("/services" , serviceRoutes);
 app.use("/business" , businessRoutes);
+app.use("/testimonials", testimonialRoutes);
 
 // Server
 const PORT = process.env.PORT || 5000;

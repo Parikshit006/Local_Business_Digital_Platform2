@@ -3,24 +3,29 @@ const mongoose = require("mongoose");
 const serviceSchema = new mongoose.Schema(
   {
     title: {
-      type: String,
-      required: true,
-      trim: true,
+      en: { type: String, required: true, trim: true },
+      mr: { type: String, trim: true }
     },
 
     shortDescription: {
-      type: String,
-      required: true,
+      en: { type: String, required: true },
+      mr: { type: String }
     },
 
     longDescription: {
-      type: String,
-      required: true,
+      en: { type: String, required: true },
+      mr: { type: String }
     },
 
     price: {
       type: Number,
       required: true,
+    },
+
+    currency: {
+      type: String,
+      enum: ["INR", "USD", "EUR", "GBP", "AED"],
+      default: "INR",
     },
 
     duration: {
@@ -30,7 +35,10 @@ const serviceSchema = new mongoose.Schema(
     },
 
     features: {
-      type: [String],
+      type: [{
+        en: { type: String, required: true },
+        mr: { type: String }
+      }],
       required: true,
       validate: [(arr) => arr.length > 0, "At least one feature required"],
     },
