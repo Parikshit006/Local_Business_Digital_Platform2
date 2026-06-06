@@ -25,6 +25,15 @@ app.use("/services" , serviceRoutes);
 app.use("/business" , businessRoutes);
 app.use("/testimonials", testimonialRoutes);
 
+const path = require("path");
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"));
+});
+
 // Server
 const PORT = process.env.PORT || 5000;
 
